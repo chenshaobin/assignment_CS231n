@@ -22,7 +22,7 @@ def load_CIFAR_batch(filename):
         datadict = load_pickle(f)
         X = datadict['data']
         Y = datadict['labels']
-        X = X.reshape(10000, 3, 32, 32).transpose(0,2,3,1).astype("float")
+        X = X.reshape(10000, 3, 32, 32).transpose(0,2,3,1).astype("float")  #（10000,32,32,3）
         Y = np.array(Y)
         return X, Y
 
@@ -38,6 +38,7 @@ def load_CIFAR10(ROOT):
         X, Y = load_CIFAR_batch(f)
         xs.append(X)
         ys.append(Y)
+
     Xtr = np.concatenate(xs)
     Ytr = np.concatenate(ys)
     del X, Y
