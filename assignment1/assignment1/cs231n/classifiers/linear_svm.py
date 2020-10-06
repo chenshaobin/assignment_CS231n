@@ -29,13 +29,15 @@ def svm_loss_naive(W, X, y, reg):
     loss = 0.0
     for i in range(num_train):
         scores = X[i].dot(W)
-        correct_class_score = scores[y[i]]
+        correct_class_score = scores[y[i]]  # 获取正确分类的分数
         for j in range(num_classes):
             if j == y[i]:
                 continue
-            margin = scores[j] - correct_class_score + 1 # note delta = 1
+            margin = scores[j] - correct_class_score + 1    # note delta = 1
             if margin > 0:
                 loss += margin
+                dW[:, y[j]] += -X[i]
+                dW[:, j] += X[i]
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
@@ -54,7 +56,8 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dW /= num_train
+    dW += 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
@@ -78,7 +81,15 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = len(y)
+    scores = X.dot(W)
+    scores -= scores[range(N), [y]].T
+    print('scores shape:', scores.shape)    # 应该是（N，）
+    scores += 1  # 加上一个delta
+    scores[range[N], [y]] = 0
+    margin = np.maximum(0, scores)
+    loss = np.sum(margin) / N + reg * np.sum(W ** 2)
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -93,7 +104,13 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    idx = np.zeros_like(margin)  # N X 10记录有损失的地方为1，其余地方为0
+    idx[margin > 0] = 1
+    # dW[:,y] = - X.T * np.sum(idx,axis=1)#python只会更新每一列不会累加每一列
+    idx[range(N), y] -= np.sum(idx, axis=1)
+    dW += X.T.dot(idx)  # mask
+    dW /= N
+    dW += 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 

@@ -22,7 +22,7 @@ def load_CIFAR_batch(filename):
         datadict = load_pickle(f)
         X = datadict['data']
         Y = datadict['labels']
-        X = X.reshape(10000, 3, 32, 32).transpose(0,2,3,1).astype("float")  #（10000,32,32,3）
+        X = X.reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1).astype("float")  #（10000,32,32,3）
         Y = np.array(Y)
         return X, Y
 
@@ -34,7 +34,7 @@ def load_CIFAR10(ROOT):
     xs = []
     ys = []
     for b in range(1,6):
-        f = os.path.join(ROOT, 'data_batch_%d' % (b, ))
+        f = os.path.join(ROOT, 'data_batch_%d' % (b, ))  # 拼接文件路径和文件名称
         X, Y = load_CIFAR_batch(f)
         xs.append(X)
         ys.append(Y)

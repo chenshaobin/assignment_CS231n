@@ -127,8 +127,10 @@ class KNearestNeighbor(object):
         #       and two broadcast sums.                                         #
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        X_squred = np.sum(X**2, axis=1)     # (50000,)
+        X_train_squared = np.sum(self.X_train ** 2, axis=1)  #(500,)
+        X_X_train = np.dot(X, self.X_train.T)   # (500,50000)
+        dists = np.sqrt(X_train_squared + X_squred[:, np.newaxis] + 2 * X_X_train)       #(50000,) + (500,1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -140,7 +142,7 @@ class KNearestNeighbor(object):
 
         Inputs:
         - dists: A numpy array of shape (num_test, num_train) where dists[i, j]
-          gives the distance betwen the ith test point and the jth training point.
+          gives the distance between the ith test point and the jth training point.
 
         Returns:
         - y: A numpy array of shape (num_test,) containing predicted labels for the
@@ -160,9 +162,9 @@ class KNearestNeighbor(object):
             # Hint: Look up the function numpy.argsort.                             #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
-
+            test_row_dist = dists[i, :]  # 获得对应的测试数据与训练数据的距离，
+            dist_sorted_index = np.argsort(test_row_dist)   # 得到距离从小到大排序后对应的索引
+            closest_y = self.y_train[dist_sorted_index[0: k]]   # 找到k个较近距离的预测值
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             #########################################################################
             # TODO:                                                                 #
@@ -172,8 +174,7 @@ class KNearestNeighbor(object):
             # label.                                                                #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
+            y_pred[i] = np.argmax(np.bincount(closest_y))
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
