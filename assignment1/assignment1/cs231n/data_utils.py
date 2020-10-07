@@ -55,28 +55,29 @@ def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000,
     """
     # Load the raw CIFAR-10 data
     cifar10_dir = 'cs231n/datasets/cifar-10-batches-py'
-    X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
+    X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)    # 得到的X的维度：（10000,32,32,3）
 
     # Subsample the data
-    mask = list(range(num_training, num_training + num_validation))
+    mask = list(range(num_training, num_training + num_validation))     # 提取交叉验证数据集
     X_val = X_train[mask]
     y_val = y_train[mask]
-    mask = list(range(num_training))
+    mask = list(range(num_training))        # 训练数据集
     X_train = X_train[mask]
     y_train = y_train[mask]
-    mask = list(range(num_test))
+    mask = list(range(num_test))    # 测试数据集
     X_test = X_test[mask]
     y_test = y_test[mask]
 
     # Normalize the data: subtract the mean image
     if subtract_mean:
-        mean_image = np.mean(X_train, axis=0)
+        mean_image = np.mean(X_train, axis=0)   #
+        print('mean_image shape:', mean_image)  #(3072,)
         X_train -= mean_image
         X_val -= mean_image
         X_test -= mean_image
 
     # Transpose so that channels come first
-    X_train = X_train.transpose(0, 3, 1, 2).copy()
+    X_train = X_train.transpose(0, 3, 1, 2).copy()  #（num_training,3,32,32）
     X_val = X_val.transpose(0, 3, 1, 2).copy()
     X_test = X_test.transpose(0, 3, 1, 2).copy()
 

@@ -32,10 +32,28 @@ def softmax_loss_naive(W, X, y, reg):
     # regularization!                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    num_classes = W.shape[1]
+    num_train = X.shape[0]
+    scores = np.dot(X, W)
+    for i in range(num_train):
+        current_row_scores = scores[i, :]
+        # 通过减去当前分数中的最高值来保持数值稳定性
+        shift_scores = current_row_scores - np.max(current_row_scores)
+        # 计算当前数据的误差
+        loss_current = -shift_scores[y[i]] + np.log(np.sum(np.exp(shift_scores)))
+        loss += loss_current
+        for j in range(num_classes):
+            softmax_scores = np.exp(shift_scores[y[j]]) / np.sum(np.exp(shift_scores))
+            if j == y[i]:
+                dW[:, j] += (-1 + softmax_scores) * X[i, :]
+            else:
+                dW[:, j] += softmax_scores * X[i, :]
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+    loss /= num_train
+    loss += reg * np.sum(W * W)
+    dW /= num_train
+    dW += 2 * reg * W
 
     return loss, dW
 
@@ -58,7 +76,27 @@ def softmax_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_train = X.shape[0]
+    scores = np.dot(X, W)
+    # print('scores shape:', scores.shape)  #(n,10)
+    # print('maxScore shape:', np.max(scores, axis=1)[:, np.newaxis].shape) #(n,1)
+    shift_scores = scores - np.max(scores, axis=1)[:, np.newaxis]
+    # print('softmax_scores shape:', softmax_scores.shape)  #(n,10)
+    # print('np.sum(np.exp(shift_scores), axis=1)[:, np.newaxis]:', np.sum(np.exp(shift_scores), axis=1)[:, np.newaxis].shape) #(n,1)
+    softmax_scores = np.exp(shift_scores) / np.sum(np.exp(shift_scores), axis=1)[:, np.newaxis]
+
+
+    dScore = softmax_scores
+    dScore[range(num_train), y] = dScore[range(num_train), y] - 1
+
+    dW = np.dot(X.T, dScore)
+    dW /= num_train
+    dW += 2 * reg * W
+    # 找到正确类的分数值
+    correct_class_scores = np.choose(y, shift_scores.T)
+    loss = -correct_class_scores + np.log(np.sum(np.exp(shift_scores), axis=1))
+    loss = np.sum(loss) / num_train
+    loss += reg * np.sum(W * W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 

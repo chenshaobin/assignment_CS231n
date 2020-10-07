@@ -21,7 +21,7 @@ def svm_loss_naive(W, X, y, reg):
     - loss as single float
     - gradient with respect to weights W; an array of same shape as W
     """
-    dW = np.zeros(W.shape) # initialize the gradient as zero
+    dW = np.zeros(W.shape) # initialize the gradient as zero (D,C)
 
     # compute the loss and the gradient
     num_classes = W.shape[1]
@@ -36,8 +36,8 @@ def svm_loss_naive(W, X, y, reg):
             margin = scores[j] - correct_class_score + 1    # note delta = 1
             if margin > 0:
                 loss += margin
-                dW[:, y[j]] += -X[i]
-                dW[:, j] += X[i]
+                dW[:, y[j]] += -X[i, :]
+                dW[:, j] += X[i, :]
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
@@ -56,8 +56,7 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    dW /= num_train
-    dW += 2 * reg * W
+    dW /= num_train + 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
@@ -84,9 +83,9 @@ def svm_loss_vectorized(W, X, y, reg):
     N = len(y)
     scores = X.dot(W)
     scores -= scores[range(N), [y]].T
-    print('scores shape:', scores.shape)    # 应该是（N，）
+    # print('scores shape:', scores.shape)    # 应该是（N，10）
     scores += 1  # 加上一个delta
-    scores[range[N], [y]] = 0
+    scores[range(N), [y]] = 0
     margin = np.maximum(0, scores)
     loss = np.sum(margin) / N + reg * np.sum(W ** 2)
 
