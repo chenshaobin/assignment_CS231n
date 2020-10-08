@@ -80,7 +80,15 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # fc1 layer激活项
+        fc1_activation = np.dot(X, W1) + b1     #(N,H)
+        # Relu layer
+        relu_1_activation = fc1_activation      # (N,H)
+        relu_1_activation[relu_1_activation < 0] = 0
+        # fc2 layer
+        fc2_activation = np.dot(relu_1_activation, W2) + b2     # (N,C)
+        # output scores
+        scores = fc2_activation     # 首次得到的分数
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -98,7 +106,14 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        shift_scores = scores - np.max(scores, axis=1)[:, np.newaxis]  # np.max(scores, axis=1)为向量形式(n,)需要矩阵形式（n,1）
+        softmax_scores = np.exp(shift_scores) / np.sum(np.exp(shift_scores), axis=1)[:, np.newaxis]
+        correct_class_scores = np.choose(y, shift_scores.T)     # 找到正确分类的类别对应的分数
+        loss = - correct_class_scores + np.log(np.sum(np.exp(shift_scores), axis=1))
+        loss = np.sum(loss)
+        loss /= N
+        loss += reg * (np.sum(W1 * W1) + np.sum(W2 * W2) + np.sum(b2 * b2))     # 损失函数加上正则项
+
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,10 +126,30 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # 计算损失函数对scores的梯度
+        dSoft = softmax_scores  # (N,C)
+        dSoft[range(N), y] = dSoft[range(N), y] - 1
+        dSoft /= N      # 取平均值
+
+        dW2 = np.dot(relu_1_activation.T, dSoft)
+        dW2 += 2 * reg * W2
+        grads['W2'] = dW2
+
+        db2 = dSoft * 1
+        grads['b2'] = np.sum(db2, axis=0)
+
+        dx2 = np.dot(dSoft, W2.T)
+        relu_mask = (relu_1_activation > 0)
+        dRelu1 = relu_mask * dx2
+
+        dW1 = np.dot(X.T, dRelu1)
+        dW1 += 2 * reg * W1
+        grads['W1'] = dW1
+
+        db1 = dRelu1 * 1
+        grads['b1'] = np.sum(db1, axis=0)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
         return loss, grads
 
     def train(self, X, y, X_val, y_val,
@@ -155,9 +190,9 @@ class TwoLayerNet(object):
             # them in X_batch and y_batch respectively.                             #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
-
+            mask = np.random.choice(num_train, batch_size, replace=True)
+            X_batch = X[mask]
+            y_batch = y[mask]
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
             # Compute loss and gradients using the current minibatch
@@ -172,7 +207,10 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            self.params['W1'] += learning_rate * (-grads['W1'])
+            self.params['b1'] += learning_rate * (-grads['b1'])
+            self.params['W2'] += learning_rate * (-grads['W2'])
+            self.params['b2'] += learning_rate * (-grads['b2'])
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -218,7 +256,13 @@ class TwoLayerNet(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # y_pred = np.argmax(self.loss(X), axis=1)      #solution1
+
+        # solution2
+        W1, b1 = self.params['W1'], self.params['b1']
+        W2, b2 = self.params['W2'], self.params['b2']
+        scores = np.maximum(X.dot(W1) + b1, 0).dot(W2) + b2
+        y_pred = np.argmax(scores, axis=1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
