@@ -68,7 +68,7 @@ def rgb2gray(rgb):
         gray : grayscale image
 
     """
-    return np.dot(rgb[...,:3], [0.299, 0.587, 0.144])
+    return np.dot(rgb[..., :3], [0.299, 0.587, 0.144])
 
 
 def hog_feature(im):
@@ -142,9 +142,9 @@ def color_histogram_hsv(im, nbin=10, xmin=0, xmax=255, normalized=True):
     """
     ndim = im.ndim
     bins = np.linspace(xmin, xmax, nbin+1)
-    hsv = matplotlib.colors.rgb_to_hsv(im/xmax) * xmax
-    imhist, bin_edges = np.histogram(hsv[:,:,0], bins=bins, density=normalized)
-    imhist = imhist * np.diff(bin_edges)
+    hsv = matplotlib.colors.rgb_to_hsv(im/xmax) * xmax   # matplotlib.colors.rgb_to_hsv函数要求的输入参数在0-1之间
+    imhist, bin_edges = np.histogram(hsv[:, :, 0], bins=bins, density=normalized)   #在HSV颜色空间中使用色相通道（hue）的颜色直方图
+    imhist = imhist * np.diff(bin_edges)    # 计算得到每个灰度值的直方图对应的面积
 
     # return histogram
     return imhist
