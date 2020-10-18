@@ -122,7 +122,7 @@ class Solver(object):
         self.y_val = data["y_val"]
 
         # Unpack keyword arguments
-        self.update_rule = kwargs.pop("update_rule", "sgd")     # kwargs中有对应的属性就返回，没有就返回默认值，即逗号后的值
+        self.update_rule = kwargs.pop("update_rule", "sgd")     # kwargs中有对应的属性就返回，没有就返回
         self.optim_config = kwargs.pop("optim_config", {})   # 优化函数optim中需要的参数
         self.lr_decay = kwargs.pop("lr_decay", 1.0)
         self.batch_size = kwargs.pop("batch_size", 100)

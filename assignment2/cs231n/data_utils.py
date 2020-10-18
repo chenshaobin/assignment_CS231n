@@ -69,7 +69,7 @@ def get_CIFAR10_data(
     X_test = X_test[mask]
     y_test = y_test[mask]
 
-    # Normalize the data: subtract the mean image
+    # Normalize the data: subtract the mean image，通过将每张图像减去所有图像的均值来规范数据。
     if subtract_mean:
         mean_image = np.mean(X_train, axis=0)
         X_train -= mean_image

@@ -283,26 +283,31 @@ class FullyConnectedNet(object):
         # layer, etc.                                                              #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        """
-        if self.normalization is None:      # 这个处理不知道是否正确
+
+        if self.normalization == "layernorm":      # 这个处理不知道是否正确
             self.bn_params = [{} for i in range(self.num_layers - 1)]
         if not self.use_dropout:
             self.dropout_param = {'mode': 'train', 'p': 1}
-        """
+
         fc_cache = {}
         relu_cache = {}
         bn_cache = {}
         dropout_cache = {}
+        lay_cache = {}
         num_train = X.shape[0]
         X = np.reshape(X, [num_train, -1])
         # {affine - [batch/layer norm] - relu - [dropout]} x (L - 1) - affine - softmax (L为网络层数，不包括输入层)
         for i in range(self.num_layers - 1):
             # 最后一层单独处理
             fc_act, fc_cache[str(i+1)] = affine_forward(X, self.params['W' + str(i+1)], self.params['b' + str(i+1)])
-            if self.normalization is not None:
+            if self.normalization == "batchnorm":
                 bn_act, bn_cache[str(i+1)] = batchnorm_forward(fc_act, self.params['gamma' + str(i+1)],
                                                                self.params['beta' + str(i+1)], self.bn_params[i])
                 relu_act, relu_cache[str(i+1)] = relu_forward(bn_act)
+            elif self.normalization == "layernorm":
+                lay_out, lay_cache[str(i+1)] = layernorm_forward(fc_act, self.params['gamma' + str(i+1)],
+                                                       self.params['beta' + str(i+1)], self.bn_params[i])
+                relu_act, relu_cache[str(i + 1)] = relu_forward(lay_out)
             else:
                 relu_act, relu_cache[str(i + 1)] = relu_forward(fc_act)
 
@@ -351,11 +356,16 @@ class FullyConnectedNet(object):
                 dx_last = dropout_backward(dx_last, dropout_cache[str(i)])
             drelu = relu_backward(dx_last, relu_cache[str(i)])
 
-            if self.normalization is not None:
+            if self.normalization == "batchnorm":
                 dbatchnorm, dgamma, dbeta = batchnorm_backward(drelu, bn_cache[str(i)])
                 dx_last, dw_last, db_last = affine_backward(dbatchnorm, fc_cache[str(i)])
                 grads['gamma' + str(i)] = dgamma
-                grads['beta' + str(i)] = db_last
+                grads['beta' + str(i)] = dbeta
+            elif self.normalization == "layernorm":
+                dbatchnorm, dgamma, dbeta = layernorm_backward(drelu, lay_cache[str(i)])
+                dx_last, dw_last, db_last = affine_backward(dbatchnorm, fc_cache[str(i)])
+                grads['gamma' + str(i)] = dgamma
+                grads['beta' + str(i)] = dbeta
             else:
                 dx_last, dw_last, db_last = affine_backward(drelu, fc_cache[str(i)])
 
